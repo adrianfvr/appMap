@@ -1,5 +1,6 @@
 import { AfterViewInit, Component } from '@angular/core';
 import * as L from 'leaflet';
+import { Geolocation } from '@capacitor/geolocation';
 
 @Component({
   selector: 'app-home',
@@ -20,27 +21,27 @@ export class HomePage implements AfterViewInit {
     }, 500);
   }
 
-  initMap(): void {
+  async initMap(): Promise<void> {
+    const position = await Geolocation.getCurrentPosition();
+    const {latitude, longitude} = position.coords;
+    console.log("current position", position);
+
     const customIcon = L.icon({
-      iconUrl:
-        './assets/icon/marker-map.png',
+      iconUrl: './assets/icon/marker-map.png',
       iconSize: [40, 40],
       iconAnchor: [20, 40],
       popupAnchor: [0, -40],
     });
 
-    this.map = L.map('mapID').setView(
-      [4.606449, -74.08132],
-      18
-    ); // [Latitud, Longitud]
+    this.map = L.map('mapID').setView([latitude, longitude], 18); // [Latitud, Longitud]
 
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
 
-    L.marker([4.606449, -74.08132], { icon: customIcon })
+    L.marker([latitude, longitude], { icon: customIcon })
       .addTo(this.map)
-      .bindPopup('ETITC')
+      .bindPopup("I'm here!!!")
       .openPopup();
   }
 
