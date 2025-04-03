@@ -1,6 +1,7 @@
 import { AfterViewInit, Component } from '@angular/core';
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
+import { AlertController } from '@ionic/angular';
 
 @Component({
   selector: 'app-home',
@@ -8,21 +9,33 @@ import { Geolocation } from '@capacitor/geolocation';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-
 export class HomePage implements AfterViewInit {
   private map!: L.Map;
 
-  constructor() {}
+  constructor(private alertController: AlertController) {}
 
   ngAfterViewInit(): void {
     this.initMap();
     setTimeout(() => this.map.invalidateSize(), 500);
   }
+  // Mostrar el alert
+  async showErrorAlert(e: string) {
+    const alert = await this.alertController.create({
+      header: 'Error',
+      subHeader: 'Ubicación no encontrada',
+      message: `Detalle: ${e}`,
+      buttons: ['OK'], // Botón para cerrar el alert
+    });
+
+    await alert.present();
+  }
 
   // Iniciar el Mapa
   async initMap(): Promise<void> {
     // Punto por defecto (Estacion Bomberos Egipto)
-    const defaultPosition: [number, number] = [4.592082775872901, -74.07004845194825];
+    const defaultPosition: [number, number] = [
+      4.592082775872901, -74.07004845194825,
+    ];
     // Icono mapa
     const customIconRed = L.icon({
       iconUrl: './assets/icon/marker-map.png',
@@ -51,7 +64,7 @@ export class HomePage implements AfterViewInit {
       { name: 'Usaquén', coords: [4.760684, -74.044926] },
       { name: 'Antonio Nariño', coords: [4.635223, -74.081994] },
     ];
-    
+
     try {
       // Solicitar permisos de geolocalización
       const permission = await Geolocation.requestPermissions();
@@ -67,9 +80,10 @@ export class HomePage implements AfterViewInit {
         .addTo(this.map)
         .bindPopup("I'm here!!!")
         .openPopup();
-      
-    } catch (error) {
-      console.error('Error obteniendo la ubicación:', error);
+    } catch (error: any) {
+      await this.showErrorAlert(
+        error.message || 'No se pudo establecer la ubicacion.'
+      );
 
       this.map = L.map('mapID').setView(defaultPosition, 18);
 
