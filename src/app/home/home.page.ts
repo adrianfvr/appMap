@@ -8,6 +8,7 @@ import { Geolocation } from '@capacitor/geolocation';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
+
 export class HomePage implements AfterViewInit {
   private map!: L.Map;
 
@@ -18,7 +19,26 @@ export class HomePage implements AfterViewInit {
     setTimeout(() => this.map.invalidateSize(), 500);
   }
 
+  // Iniciar el Mapa
   async initMap(): Promise<void> {
+    // Punto por defecto (Estacion Bomberos Egipto)
+    const defaultPosition: [number, number] = [4.592082775872901, -74.07004845194825];
+    // Icono mapa
+    const customIconRed = L.icon({
+      iconUrl: './assets/icon/marker-map.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+    const customIconGreen = L.icon({
+      iconUrl: './assets/icon/marker-map-green.png',
+      iconSize: [40, 40],
+      iconAnchor: [20, 40],
+      popupAnchor: [0, -40],
+    });
+    // Arreglo de Puntos
+    const points = [];
+
     const puntos = [
       { name: 'Centro de Bogotá', coords: [4.710989, -74.07209] },
       { name: 'Chapinero', coords: [4.71585, -74.034686] },
@@ -31,44 +51,34 @@ export class HomePage implements AfterViewInit {
       { name: 'Usaquén', coords: [4.760684, -74.044926] },
       { name: 'Antonio Nariño', coords: [4.635223, -74.081994] },
     ];
-
-    const defaultPosition: [number, number] = [4.710989, -74.07209];
-
-    const customIcon = L.icon({
-      iconUrl: './assets/icon/marker-map.png',
-      iconSize: [40, 40],
-      iconAnchor: [20, 40],
-      popupAnchor: [0, -40],
-    });
-
+    
     try {
       // Solicitar permisos de geolocalización
       const permission = await Geolocation.requestPermissions();
-      console.log('Permiso de geolocalización:', permission);
-      
+      console.log(permission);
+
       // Obtener la ubicación actual
-      const position = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-      });
-
+      const position = await Geolocation.getCurrentPosition();
       const { latitude, longitude } = position.coords;
-      console.log('Current Position: ', position);
-      this.map = L.map('mapID').setView([latitude, longitude], 18); // [Latitud, Longitud]
 
-      L.marker([latitude, longitude], { icon: customIcon })
+      this.map = L.map('mapID').setView([latitude, longitude], 18);
+
+      L.marker([latitude, longitude], { icon: customIconRed })
         .addTo(this.map)
         .bindPopup("I'm here!!!")
         .openPopup();
+      
     } catch (error) {
       console.error('Error obteniendo la ubicación:', error);
 
       this.map = L.map('mapID').setView(defaultPosition, 18);
 
-      L.marker(defaultPosition, { icon: customIcon })
+      L.marker(defaultPosition, { icon: customIconRed })
         .addTo(this.map)
-        .bindPopup('Ubicación predeterminada: Bogotá.')
+        .bindPopup('Bomberos Egipto')
         .openPopup();
     }
+
     const ruta = L.polyline(
       puntos.map((punto) => punto.coords as [number, number]),
       { color: 'blue' }
@@ -80,7 +90,7 @@ export class HomePage implements AfterViewInit {
     }).addTo(this.map);
 
     puntos.forEach((punto) => {
-      L.marker(punto.coords as [number, number], { icon: customIcon })
+      L.marker(punto.coords as [number, number], { icon: customIconGreen })
         .addTo(this.map)
         .bindPopup(punto.name)
         .openPopup();
