@@ -6,12 +6,20 @@
 </header>
 <ion-content class="content">
   <div id="mapID"></div>
-  <div class="btn-container">
-    <button class="btn">
-      <ion-icon name="walk" class="icon"></ion-icon>
-    </button>
-    <button class="btn">
-      <ion-icon name="locate" class="icon"></ion-icon>
-    </button>
-  </div>
+  <ion-fab slot="fixed" vertical="bottom" horizontal="end">
+    <ion-fab-button>
+      <ion-icon name="chevron-up-circle"></ion-icon>
+    </ion-fab-button>
+    <ion-fab-list side="top">
+      <ion-fab-button>
+        <ion-icon name="walk" (click)="startRoute()"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button disabled >
+        <ion-icon name="locate" (click)="setPoint()"></ion-icon>
+      </ion-fab-button>
+      <ion-fab-button>
+        <ion-icon name="globe"></ion-icon>
+      </ion-fab-button>
+    </ion-fab-list>
+  </ion-fab>
 </ion-content>

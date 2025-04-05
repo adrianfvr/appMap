@@ -19,6 +19,7 @@
 @import "@ionic/angular/css/display.css";
 
 /* Optional CSS utils that can be commented out */
+
 @import "@ionic/angular/css/padding.css";
 @import "@ionic/angular/css/float-elements.css";
 @import "@ionic/angular/css/text-alignment.css";
@@ -38,3 +39,7 @@
 
 
 @import "~leaflet/dist/leaflet.css";
+
+:root {
+  --ion-color-secondary: #2E2E2E;
+}
