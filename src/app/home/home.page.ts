@@ -115,6 +115,7 @@ export class HomePage implements AfterViewInit {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
   }
+
   iconName: string = 'walk';
   toggleRoute(): void {
     if (this.iconName === 'walk') {
@@ -127,10 +128,12 @@ export class HomePage implements AfterViewInit {
   }
 
   startRoute(): void {
-    this.points.push({
-      name: `Start Point`,
-      coords: this.defaultPosition,
-    });
+    if (this.points.length === 0) {
+      this.points.push({
+        name: `Start Point`,
+        coords: this.defaultPosition,
+      });
+    }
     this.routeInterval = setInterval(async () => {
       try {
         const position = await Geolocation.getCurrentPosition();
@@ -187,7 +190,7 @@ export class HomePage implements AfterViewInit {
       const { latitude, longitude } = position.coords;
 
       this.points.push({
-        name: `Point ${this.points.length + 1}`,
+        name: `Set point ${this.points.length + 1}`,
         coords: [latitude, longitude],
       });
 
@@ -195,6 +198,12 @@ export class HomePage implements AfterViewInit {
       this.drawRoute();
     } catch (error) {
       console.log('No se pudo colocar el punto.');
+      if (this.points.length === 0) {
+        this.points.push({
+          name: `Start Point`,
+          coords: this.defaultPosition,
+        });
+      }
       this.points.push({
         name: `Set point ${this.points.length + 1}`,
         coords: [4.635223, -74.081994],
@@ -204,6 +213,47 @@ export class HomePage implements AfterViewInit {
     }
   }
 
+  async deleteRoute(): Promise<void> {
+    this.iconName = 'walk';
+    clearInterval(this.routeInterval);
+    this.points = [];
+    this.savePoint();
+    this.drawRoute();
+    this.clearMapRoutes();
+    try {
+      const position = await Geolocation.getCurrentPosition(); // Obtener la ubicación actual
+      const { latitude, longitude } = position.coords;
+
+      this.map.setView([latitude, longitude], 18); // Mueve el mapa a la ubicación actual del usuario
+
+      // Agrega un marcador en la nueva ubicación
+      L.marker([latitude, longitude], { icon: this.customIconRed })
+        .addTo(this.map)
+        .bindPopup("I'm here!!!")
+        .openPopup();
+    } catch (error: any) {
+      await this.showErrorAlert(
+        error.message || 'No se pudo establecer la ubicacion.'
+      );
+
+      this.map.setView(this.defaultPosition, 18);
+
+      L.marker(this.defaultPosition, { icon: this.customIconRed })
+        .addTo(this.map)
+        .bindPopup('Bomberos Egipto')
+        .openPopup();
+    }
+  }
+
+  clearMapRoutes(): void {
+    if (this.map) {
+      this.map.eachLayer((layer) => {
+        if (layer instanceof L.Polyline || layer instanceof L.Marker) {
+          this.map.removeLayer(layer); // Elimina las capas de las rutas y marcadores
+        }
+      });
+    }
+  }
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
