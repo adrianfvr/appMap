@@ -11,13 +11,13 @@
       <ion-icon name="chevron-up-circle"></ion-icon>
     </ion-fab-button>
     <ion-fab-list side="top">
-      <ion-fab-button (click)="toggleRoute()">
+      <ion-fab-button (click)="toggleRoute()" class="btn btn-route">
         <ion-icon [name]="iconName"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button (click)="setPoint()">
+      <ion-fab-button (click)="setPoint()" class="btn btn-set">
         <ion-icon name="locate"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button (click)="deleteRoute()">
+      <ion-fab-button (click)="deleteRoute()" class="btn btn-delete">
         <ion-icon name="trash"></ion-icon>
       </ion-fab-button>
     </ion-fab-list>

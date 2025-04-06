@@ -37,9 +37,15 @@
 /* @import "@ionic/angular/css/palettes/dark.class.css"; */
 @import "@ionic/angular/css/palettes/dark.system.css";
 
-
 @import "~leaflet/dist/leaflet.css";
 
 :root {
-  --ion-color-secondary: #2E2E2E;
+  --ion-color-secondary: #2e2e2e;
+}
+
+.btn {
+  background-color: var(--ion-color-secondary);
+}
+.btn ion-icon {
+  color: #ffffff;
 }
