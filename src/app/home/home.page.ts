@@ -10,7 +10,6 @@ import { Storage } from '@ionic/storage-angular';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-
 export class HomePage implements AfterViewInit {
   private map!: L.Map;
   private points: { name: string; coords: [number, number] }[] = [];
@@ -25,7 +24,7 @@ export class HomePage implements AfterViewInit {
     { name: 'Suba', coords: [4.738958, -74.100161] },
     { name: 'La Candelaria', coords: [4.598272, -74.076375] },
     { name: 'Usaquén', coords: [4.760684, -74.044926] },
-    { name: 'Antonio Nariño', coords: [4.635223, -74.081994] },
+    // { name: 'Antonio Nariño', coords: [4.635223, -74.081994] },
   ];
   private i = 0;
   // Icono mapa
@@ -116,6 +115,16 @@ export class HomePage implements AfterViewInit {
       attribution: '&copy; OpenStreetMap contributors',
     }).addTo(this.map);
   }
+  iconName: string = 'walk';
+  toggleRoute(): void {
+    if (this.iconName === 'walk') {
+      this.iconName = 'stop-circle';
+      this.startRoute();
+    } else {
+      this.iconName = 'walk';
+      clearInterval(this.routeInterval);
+    }
+  }
 
   startRoute(): void {
     this.points.push({
@@ -186,6 +195,12 @@ export class HomePage implements AfterViewInit {
       this.drawRoute();
     } catch (error) {
       console.log('No se pudo colocar el punto.');
+      this.points.push({
+        name: `Set point ${this.points.length + 1}`,
+        coords: [4.635223, -74.081994],
+      });
+      await this.savePoint();
+      this.drawRoute();
     }
   }
 
