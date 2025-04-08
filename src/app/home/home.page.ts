@@ -1,4 +1,229 @@
-import { AfterViewInit, Component } from '@angular/core';
+// import { Component } from '@angular/core';
+// import * as L from 'leaflet';
+// import { Geolocation } from '@capacitor/geolocation';
+// import { AlertController } from '@ionic/angular';
+// import { Storage } from '@ionic/storage-angular';
+
+// @Component({
+//   selector: 'app-home',
+//   templateUrl: 'home.page.html',
+//   styleUrls: ['home.page.scss'],
+//   standalone: false,
+// })
+// export class HomePage {
+//   private map!: L.Map;
+//   private points: { name: string; coords: [number, number] }[] = [];
+//   private routeInterval: any;
+//   private routeLayerGroup = L.layerGroup();
+//   private currentLocationMarker!: L.Marker;
+//   private isTracking = false;
+
+//   private customIconRed = L.icon({
+//     iconUrl: './assets/icon/marker-map.png',
+//     iconSize: [40, 40],
+//     iconAnchor: [20, 40],
+//     popupAnchor: [0, -40],
+//   });
+
+//   private customIconGreen = L.icon({
+//     iconUrl: './assets/icon/marker-map-green.png',
+//     iconSize: [40, 40],
+//     iconAnchor: [20, 40],
+//     popupAnchor: [0, -40],
+//   });
+
+//   iconName: string = 'walk';
+
+//   constructor(
+//     private alertController: AlertController,
+//     private storage: Storage
+//   ) {
+//     this.initStorage();
+//   }
+
+//   private async initStorage() {
+//     await this.storage.create();
+//   }
+
+//   private async handleError(error: any, defaultMessage: string) {
+//     const message = error?.message || defaultMessage;
+//     const alert = await this.alertController.create({
+//       header: 'Error',
+//       subHeader: 'Ubicación no encontrada',
+//       message: `Detalle: ${message}`,
+//       buttons: ['OK'],
+//     });
+
+//     await alert.present();
+//   }
+
+//   async ionViewDidEnter() {
+//     await this.loadPoints();
+//     await this.initMap();
+//     setTimeout(() => {
+//       this.map.invalidateSize(); // Forzar recalculo
+//       this.drawRoute();
+//     }, 500);
+//   }
+
+//   private async loadPoints() {
+//     const points = await this.storage.get('points');
+//     this.points = points || [];
+//   }
+
+//   private async savePoints() {
+//     await this.storage.set('points', this.points);
+//   }
+
+//   private async initMap(): Promise<void> {
+//     try {
+//       const permission = await Geolocation.requestPermissions();
+//       console.log(permission);
+
+//       const position = await Geolocation.getCurrentPosition();
+//       const { latitude, longitude } = position.coords;
+
+//       this.map = L.map('mapID').setView([latitude, longitude], 18);
+//       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+//         attribution: '&copy; OpenStreetMap contributors',
+//       }).addTo(this.map);
+
+//       this.currentLocationMarker = L.marker([latitude, longitude], {
+//         icon: this.customIconRed,
+//       })
+//         .addTo(this.map)
+//         .bindPopup("I'm here!!!")
+//         .openPopup();
+//     } catch (error: any) {
+//       await this.handleError(error, 'No se pudo establecer la ubicación');
+//     }
+//   }
+
+//   async toggleRoute(): Promise<void> {
+//     if (!this.isTracking) {
+//       if (await this.startRoute()) {
+//         this.isTracking = true;
+//         this.iconName = 'stop-circle';
+//       }
+//     } else {
+//       this.stopRoute();
+//     }
+//   }
+
+//   private stopRoute(): void {
+//     this.iconName = 'walk';
+//     this.isTracking = false;
+//     clearInterval(this.routeInterval);
+//   }
+
+//   private async startRoute(): Promise<boolean> {
+//     try {
+//       this.routeInterval = setInterval(async () => {
+//         try {
+//           const position = await Geolocation.getCurrentPosition();
+//           const { latitude, longitude } = position.coords;
+
+//           this.points.push({
+//             name: `Point ${this.points.length + 1}`,
+//             coords: [latitude, longitude],
+//           });
+
+//           await this.savePoints();
+//           this.drawRoute();
+
+//           if (this.points.length >= 40) {
+//             this.stopRoute();
+//           }
+//         } catch (error: any) {
+//           await this.handleError(error, 'No se pudo obtener la ubicación');
+//         }
+//       }, 120000);
+
+//       return true;
+//     } catch (error: any) {
+//       await this.handleError(error, 'No se pudo iniciar el seguimiento');
+//       return false;
+//     }
+//   }
+
+//   private drawRoute(): void {
+//     if (!this.map || this.points.length === 0) return;
+
+//     this.clearMapRoutes();
+
+//     const polyline = L.polyline(
+//       this.points.map((p) => p.coords),
+//       { color: 'blue' }
+//     );
+//     this.routeLayerGroup.addLayer(polyline);
+
+//     this.points.forEach((point) => {
+//       const marker = L.marker(point.coords, {
+//         icon: this.customIconGreen,
+//       }).bindPopup(point.name);
+//       this.routeLayerGroup.addLayer(marker);
+//     });
+
+//     this.routeLayerGroup.addTo(this.map);
+//     this.map.fitBounds(this.points.map((p) => p.coords));
+//   }
+
+//   async setPoint(): Promise<void> {
+//     try {
+//       const position = await Geolocation.getCurrentPosition();
+//       const { latitude, longitude } = position.coords;
+
+//       this.points.push({
+//         name: `Set point ${this.points.length + 1}`,
+//         coords: [latitude, longitude],
+//       });
+
+//       await this.savePoints();
+//       this.drawRoute();
+//     } catch (error: any) {
+//       await this.handleError(error, 'No se pudo establecer un punto');
+//     }
+//   }
+
+//   async deleteRoute(): Promise<void> {
+//     this.stopRoute();
+//     this.points = [];
+//     await this.savePoints();
+//     this.clearMapRoutes();
+
+//     try {
+//       const position = await Geolocation.getCurrentPosition();
+//       const { latitude, longitude } = position.coords;
+
+//       this.map.setView([latitude, longitude], 18);
+
+//       if (this.currentLocationMarker) {
+//         this.map.removeLayer(this.currentLocationMarker);
+//       }
+
+//       this.currentLocationMarker = L.marker([latitude, longitude], {
+//         icon: this.customIconRed,
+//       })
+//         .addTo(this.map)
+//         .bindPopup("I'm here!!!")
+//         .openPopup();
+//     } catch (error: any) {
+//       await this.handleError(error, 'No se pudo establecer la ubicación');
+//     }
+//   }
+
+//   private clearMapRoutes(): void {
+//     this.routeLayerGroup.clearLayers();
+//   }
+
+//   ngOnDestroy(): void {
+//     if (this.map) {
+//       this.map.remove();
+//     }
+//     clearInterval(this.routeInterval);
+//   }
+// }
+import { Component } from '@angular/core';
 import * as L from 'leaflet';
 import { Geolocation } from '@capacitor/geolocation';
 import { AlertController } from '@ionic/angular';
@@ -10,183 +235,178 @@ import { Storage } from '@ionic/storage-angular';
   styleUrls: ['home.page.scss'],
   standalone: false,
 })
-export class HomePage implements AfterViewInit {
+export class HomePage {
   private map!: L.Map;
   private points: { name: string; coords: [number, number] }[] = [];
-  private routeInterval: any;
-  private points1: { name: string; coords: [number, number] }[] = [
-    { name: 'Centro de Bogotá', coords: [4.710989, -74.07209] },
-    { name: 'Chapinero', coords: [4.71585, -74.034686] },
-    { name: 'Teusaquillo', coords: [4.658646, -74.060854] },
-    { name: 'Kennedy', coords: [4.625461, -74.093309] },
-    { name: 'Engativá', coords: [4.682765, -74.119824] },
-    { name: 'Puente Aranda', coords: [4.64635, -74.059952] },
-    { name: 'Suba', coords: [4.738958, -74.100161] },
-    { name: 'La Candelaria', coords: [4.598272, -74.076375] },
-    { name: 'Usaquén', coords: [4.760684, -74.044926] },
-    // { name: 'Antonio Nariño', coords: [4.635223, -74.081994] },
-  ];
-  private i = 0;
-  // Icono mapa
+  private routeLayerGroup = L.layerGroup();
+  private currentLocationMarker!: L.Marker;
+  private isTracking = false;
+  private watchId: string | null = null; // <-- Para almacenar el ID del watcher
+
   private customIconRed = L.icon({
     iconUrl: './assets/icon/marker-map.png',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
   });
+
   private customIconGreen = L.icon({
     iconUrl: './assets/icon/marker-map-green.png',
     iconSize: [40, 40],
     iconAnchor: [20, 40],
     popupAnchor: [0, -40],
   });
-  // Punto por defecto (Estacion Bomberos Egipto)
-  private defaultPosition: [number, number] = [
-    4.592082775872901, -74.07004845194825,
-  ];
+
+  iconName: string = 'walk';
 
   constructor(
-    private _AlertController: AlertController,
-    private _Storage: Storage
-  ) {}
-
-  async ngOnInit() {
-    await this._Storage.create();
-
-    const points = await this._Storage.get('points');
-    this.points = points ? JSON.parse(points) : [];
+    private alertController: AlertController,
+    private storage: Storage
+  ) {
+    this.initStorage();
   }
 
-  ngAfterViewInit(): void {
-    this.initMap();
-    setTimeout(() => {
-      this.map.invalidateSize();
-      this.drawRoute();
-      console.log(this.points);
-    }, 500);
+  private async initStorage() {
+    await this.storage.create();
   }
 
-  private async savePoint() {
-    await this._Storage.set('points', JSON.stringify(this.points));
-  }
-
-  // Mostrar el alert
-  async showErrorAlert(e: string) {
-    const alert = await this._AlertController.create({
+  private async handleError(error: any, defaultMessage: string) {
+    const message = error?.message || defaultMessage;
+    const alert = await this.alertController.create({
       header: 'Error',
       subHeader: 'Ubicación no encontrada',
-      message: `Detalle: ${e}`,
-      buttons: ['OK'], // Botón para cerrar el alert
+      message: `Detalle: ${message}`,
+      buttons: ['OK'],
     });
-
     await alert.present();
   }
 
-  // Iniciar el Mapa
-  async initMap(): Promise<void> {
+  async ionViewDidEnter() {
+    await this.loadPoints();
+    await this.initMap();
+    setTimeout(() => {
+      this.map.invalidateSize();
+      this.drawRoute();
+    }, 500);
+  }
+
+  private async loadPoints() {
+    const points = await this.storage.get('points');
+    this.points = points || [];
+  }
+
+  private async savePoints() {
+    await this.storage.set('points', this.points);
+  }
+
+  private async initMap(): Promise<void> {
     try {
-      // Solicitar permisos de geolocalización
       const permission = await Geolocation.requestPermissions();
       console.log(permission);
 
-      // Obtener la ubicación actual
-      const position = await Geolocation.getCurrentPosition();
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+      });
       const { latitude, longitude } = position.coords;
 
       this.map = L.map('mapID').setView([latitude, longitude], 18);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors',
+      }).addTo(this.map);
 
-      L.marker([latitude, longitude], { icon: this.customIconRed })
+      this.currentLocationMarker = L.marker([latitude, longitude], {
+        icon: this.customIconRed,
+      })
         .addTo(this.map)
         .bindPopup("I'm here!!!")
         .openPopup();
     } catch (error: any) {
-      await this.showErrorAlert(
-        error.message || 'No se pudo establecer la ubicacion.'
+      await this.handleError(error, 'No se pudo establecer la ubicación');
+    }
+  }
+
+  async toggleRoute(): Promise<void> {
+    if (!this.isTracking) {
+      if (await this.startRoute()) {
+        this.isTracking = true;
+        this.iconName = 'stop-circle';
+      }
+    } else {
+      this.stopRoute();
+    }
+  }
+
+  private stopRoute(): void {
+    this.iconName = 'walk';
+    this.isTracking = false;
+
+    if (this.watchId) {
+      Geolocation.clearWatch({ id: this.watchId });
+      this.watchId = null;
+    }
+  }
+
+  private async startRoute(): Promise<boolean> {
+    try {
+      this.watchId = await Geolocation.watchPosition(
+        { enableHighAccuracy: true, timeout: 10000 },
+        async (position, error) => {
+          if (error) {
+            await this.handleError(error, 'No se pudo obtener la ubicación');
+            return;
+          }
+          if (position) {
+            const { latitude, longitude } = position.coords;
+
+            this.points.push({
+              name: `Point ${this.points.length + 1}`,
+              coords: [latitude, longitude],
+            });
+
+            await this.savePoints();
+            this.drawRoute();
+
+            if (this.points.length >= 40) {
+              this.stopRoute();
+            }
+          }
+        }
       );
 
-      this.map = L.map('mapID').setView(this.defaultPosition, 18);
-
-      L.marker(this.defaultPosition, { icon: this.customIconRed })
-        .addTo(this.map)
-        .bindPopup('Bomberos Egipto')
-        .openPopup();
-    }
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors',
-    }).addTo(this.map);
-  }
-
-  iconName: string = 'walk';
-  toggleRoute(): void {
-    if (this.iconName === 'walk') {
-      this.iconName = 'stop-circle';
-      this.startRoute();
-    } else {
-      this.iconName = 'walk';
-      clearInterval(this.routeInterval);
+      return true;
+    } catch (error: any) {
+      await this.handleError(error, 'No se pudo iniciar el seguimiento');
+      return false;
     }
   }
 
-  startRoute(): void {
-    if (this.points.length === 0) {
-      this.points.push({
-        name: `Start Point`,
-        coords: this.defaultPosition,
-      });
-    }
-    this.routeInterval = setInterval(async () => {
-      try {
-        const position = await Geolocation.getCurrentPosition();
-        const { latitude, longitude } = position.coords;
-
-        this.points.push({
-          name: `Point ${this.points.length + 1}`,
-          coords: [latitude, longitude],
-        });
-
-        await this.savePoint();
-        this.drawRoute();
-
-        if (this.points.length >= 40) clearInterval(this.routeInterval);
-      } catch (error: any) {
-        this.points.push({
-          name: `Point ${this.points.length + 1}`,
-          coords: this.points1[this.i].coords,
-        });
-        this.i++;
-        await this.savePoint();
-        this.drawRoute();
-        if (this.points.length == this.points1.length)
-          clearInterval(this.routeInterval);
-      }
-    }, 5000);
-  }
-
-  drawRoute(): void {
+  private drawRoute(): void {
     if (!this.map || this.points.length === 0) return;
-    L.polyline(
-      this.points.map((point) => point.coords as [number, number]),
+
+    this.clearMapRoutes();
+
+    const polyline = L.polyline(
+      this.points.map((p) => p.coords),
       { color: 'blue' }
-    )
-      .addTo(this.map)
-      .bringToFront();
-    // Ajustar el mapa a los límites de la ruta
-    this.map.fitBounds(
-      this.points.map((point) => point.coords as [number, number])
     );
+    this.routeLayerGroup.addLayer(polyline);
+
     this.points.forEach((point) => {
-      L.marker(point.coords as [number, number], {
+      const marker = L.marker(point.coords, {
         icon: this.customIconGreen,
-      })
-        .addTo(this.map)
-        .bindPopup(point.name)
-        .openPopup();
+      }).bindPopup(point.name);
+      this.routeLayerGroup.addLayer(marker);
     });
+
+    this.routeLayerGroup.addTo(this.map);
+    this.map.fitBounds(this.points.map((p) => p.coords));
   }
 
   async setPoint(): Promise<void> {
     try {
-      const position = await Geolocation.getCurrentPosition();
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+      });
       const { latitude, longitude } = position.coords;
 
       this.points.push({
@@ -194,69 +414,52 @@ export class HomePage implements AfterViewInit {
         coords: [latitude, longitude],
       });
 
-      await this.savePoint();
+      await this.savePoints();
       this.drawRoute();
-    } catch (error) {
-      console.log('No se pudo colocar el punto.');
-      if (this.points.length === 0) {
-        this.points.push({
-          name: `Start Point`,
-          coords: this.defaultPosition,
-        });
-      }
-      this.points.push({
-        name: `Set point ${this.points.length + 1}`,
-        coords: [4.635223, -74.081994],
-      });
-      await this.savePoint();
-      this.drawRoute();
+    } catch (error: any) {
+      await this.handleError(error, 'No se pudo establecer un punto');
     }
   }
 
   async deleteRoute(): Promise<void> {
-    this.iconName = 'walk';
-    clearInterval(this.routeInterval);
+    this.stopRoute();
     this.points = [];
-    this.savePoint();
-    this.drawRoute();
+    await this.savePoints();
     this.clearMapRoutes();
+
     try {
-      const position = await Geolocation.getCurrentPosition(); // Obtener la ubicación actual
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+      });
       const { latitude, longitude } = position.coords;
 
-      this.map.setView([latitude, longitude], 18); // Mueve el mapa a la ubicación actual del usuario
+      this.map.setView([latitude, longitude], 18);
 
-      // Agrega un marcador en la nueva ubicación
-      L.marker([latitude, longitude], { icon: this.customIconRed })
+      if (this.currentLocationMarker) {
+        this.map.removeLayer(this.currentLocationMarker);
+      }
+
+      this.currentLocationMarker = L.marker([latitude, longitude], {
+        icon: this.customIconRed,
+      })
         .addTo(this.map)
         .bindPopup("I'm here!!!")
         .openPopup();
     } catch (error: any) {
-      await this.showErrorAlert(
-        error.message || 'No se pudo establecer la ubicacion.'
-      );
-
-      this.map.setView(this.defaultPosition, 18);
-
-      L.marker(this.defaultPosition, { icon: this.customIconRed })
-        .addTo(this.map)
-        .bindPopup('Bomberos Egipto')
-        .openPopup();
+      await this.handleError(error, 'No se pudo establecer la ubicación');
     }
   }
 
-  clearMapRoutes(): void {
-    if (this.map) {
-      this.map.eachLayer((layer) => {
-        if (layer instanceof L.Polyline || layer instanceof L.Marker) {
-          this.map.removeLayer(layer); // Elimina las capas de las rutas y marcadores
-        }
-      });
-    }
+  private clearMapRoutes(): void {
+    this.routeLayerGroup.clearLayers();
   }
+
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
+    }
+    if (this.watchId) {
+      Geolocation.clearWatch({ id: this.watchId });
     }
   }
 }

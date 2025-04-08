@@ -2,9 +2,9 @@
   <div class="logo">
     <img src="./assets/icon/maps-header.png" alt="Logo" />
   </div>
-  <ion-title class="title"> AppMap </ion-title>
+  <ion-title class="title"> AppMap AV</ion-title>
 </header>
-<ion-content class="content">
+<ion-content class="content" fullscreen>
   <div id="mapID"></div>
   <ion-fab slot="fixed" vertical="bottom" horizontal="end">
     <ion-fab-button>
@@ -14,10 +14,10 @@
       <ion-fab-button (click)="toggleRoute()" class="btn btn-route">
         <ion-icon [name]="iconName"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button (click)="setPoint()" class="btn btn-set">
-        <ion-icon name="locate"></ion-icon>
+      <ion-fab-button (click)="setPoint()" color="secondary" class="btn btn-set">
+        <ion-icon name="add"></ion-icon>
       </ion-fab-button>
-      <ion-fab-button (click)="deleteRoute()" class="btn btn-delete">
+      <ion-fab-button (click)="deleteRoute()" color="trash" class="btn btn-delete">
         <ion-icon name="trash"></ion-icon>
       </ion-fab-button>
     </ion-fab-list>
