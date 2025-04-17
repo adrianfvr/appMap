@@ -454,6 +454,42 @@ export class HomePage {
     this.routeLayerGroup.clearLayers();
   }
 
+  async recenterMap(): Promise<void> {
+    try {
+      const position = await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+      });
+      const { latitude, longitude } = position.coords;
+  
+      // Centrar el mapa
+      this.map.setView([latitude, longitude], 18);
+  
+      // Eliminar el marcador viejo si existe
+      if (this.currentLocationMarker) {
+        this.map.removeLayer(this.currentLocationMarker);
+      }
+  
+      // Obtener la hora actual
+      const now = new Date();
+      const hours = now.getHours().toString().padStart(2, '0');
+      const minutes = now.getMinutes().toString().padStart(2, '0');
+      const timeString = `${hours}:${minutes}`;
+  
+      // Crear nuevo marcador con la hora
+      this.currentLocationMarker = L.marker([latitude, longitude], {
+        icon: this.customIconRed,
+      })
+      .addTo(this.map)
+      .bindPopup(`Estoy aquí - ${timeString}`)
+      .openPopup();
+      
+    } catch (error: any) {
+      await this.handleError(error, 'No se pudo obtener tu ubicación actual');
+    }
+  }
+  
+  
+
   ngOnDestroy(): void {
     if (this.map) {
       this.map.remove();
